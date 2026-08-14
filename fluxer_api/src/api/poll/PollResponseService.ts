@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type {PollResponse} from '@fluxer/schema/src/domains/message/MessageResponseSchemas';
+import type {PollResponse} from '@fluxer/schema/src/domains/message/PollSchemas';
 import type {ChannelID, MessageID, UserID} from '../BrandedTypes';
 import {PollRepository} from './PollRepository';
 
