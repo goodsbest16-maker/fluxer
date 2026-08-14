@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {createStringType, Int32Type} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+import {createStringType, Int32Type, SnowflakeType} from '@fluxer/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 export const POLL_MIN_ANSWERS = 2 as const;
@@ -71,3 +71,27 @@ export const PollCustomAnswerRequest = z
 	});
 
 export type PollCustomAnswerRequest = z.infer<typeof PollCustomAnswerRequest>;
+
+export const PollAnswerResponse = z.object({
+	id: Int32Type.describe('Stable answer identifier within the poll'),
+	text: createStringType(0, POLL_ANSWER_MAX_LENGTH).describe('Text shown for this poll answer'),
+	attachment_id: SnowflakeType.nullish().describe('Resolved attachment snowflake for an optional answer image'),
+	vote_count: Int32Type.describe('Number of votes recorded for this answer'),
+	custom: z.boolean().describe('Whether this answer was added by a voter'),
+});
+
+export type PollAnswerResponse = z.infer<typeof PollAnswerResponse>;
+
+export const PollResponse = z.object({
+	question: createStringType(1, POLL_QUESTION_MAX_LENGTH).describe('Poll title or question'),
+	answers: z.array(PollAnswerResponse).max(POLL_MAX_ANSWERS).describe('Current poll answers and vote totals'),
+	closes_at: z.string().datetime().nullish().describe('ISO8601 timestamp when voting closes'),
+	closed: z.boolean().describe('Whether voting has closed'),
+	ranked: z.boolean().describe('Whether voters rank answers in preference order'),
+	anonymous: z.boolean().describe('Whether voter identities are hidden from community members'),
+	allow_custom_answers: z.boolean().describe('Whether voters may add custom answers'),
+	total_votes: Int32Type.describe('Total stored vote rows for the poll'),
+	my_answer_ids: z.array(Int32Type).max(POLL_MAX_ANSWERS).describe('Current viewer selections in rank order'),
+});
+
+export type PollResponse = z.infer<typeof PollResponse>;
