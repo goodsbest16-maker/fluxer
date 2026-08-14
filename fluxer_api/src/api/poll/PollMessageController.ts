@@ -5,7 +5,7 @@ import {InputValidationError} from '@fluxer/errors/src/domains/core/InputValidat
 import {ChannelIdParam} from '@fluxer/schema/src/domains/common/CommonParamSchemas';
 import {MessageRequestSchema} from '@fluxer/schema/src/domains/message/MessageRequestSchemas';
 import type {MessageResponse} from '@fluxer/schema/src/domains/message/MessageResponseSchemas';
-import {createChannelID} from '../BrandedTypes';
+import {createChannelID, createMessageID} from '../BrandedTypes';
 import type {MessageRequest} from '../channel/MessageTypes';
 import {normalizeMessageRequestPayload} from '../channel/services/message/MessageRequestCompatibility';
 import {parseMultipartMessageData} from '../channel/services/message/MessageRequestParser';
@@ -16,8 +16,10 @@ import type {HonoApp} from '../types/HonoEnv';
 import {parseJsonPreservingLargeIntegers} from '../utils/LosslessJsonParser';
 import {Validator} from '../Validator';
 import {PollMessagePersistence} from './PollMessagePersistence';
+import {PollResponseService} from './PollResponseService';
 
 const pollMessagePersistence = new PollMessagePersistence();
+const pollResponseService = new PollResponseService();
 
 /**
  * Handles the normal message-create route before ChannelController so poll
@@ -66,6 +68,14 @@ export function PollMessageController(app: HonoApp): void {
 				request: validatedData,
 				response,
 			});
+
+			if (validatedData.poll) {
+				response.poll = await pollResponseService.buildPollResponse(
+					channelId,
+					createMessageID(BigInt(response.id)),
+					user.id,
+				);
+			}
 
 			return ctx.json(response);
 		},
