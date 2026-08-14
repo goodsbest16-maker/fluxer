@@ -5,6 +5,11 @@ import {InputValidationError} from '@fluxer/errors/src/domains/core/InputValidat
 import {ChannelIdParam} from '@fluxer/schema/src/domains/common/CommonParamSchemas';
 import {MessageRequestSchema} from '@fluxer/schema/src/domains/message/MessageRequestSchemas';
 import type {MessageResponse} from '@fluxer/schema/src/domains/message/MessageResponseSchemas';
+import {
+	PollRequest,
+	type PollRequest as PollRequestData,
+	type PollResponse,
+} from '@fluxer/schema/src/domains/message/PollSchemas';
 import {createChannelID, createMessageID} from '../BrandedTypes';
 import type {MessageRequest} from '../channel/MessageTypes';
 import {normalizeMessageRequestPayload} from '../channel/services/message/MessageRequestCompatibility';
@@ -20,6 +25,10 @@ import {PollResponseService} from './PollResponseService';
 
 const pollMessagePersistence = new PollMessagePersistence();
 const pollResponseService = new PollResponseService();
+const PollMessageRequestSchema = MessageRequestSchema.extend({poll: PollRequest.nullish()});
+
+type PollMessageRequest = MessageRequest & {poll?: PollRequestData | null};
+type PollAwareMessageResponse = MessageResponse & {poll?: PollResponse | null};
 
 /**
  * Handles the normal message-create route before ChannelController so poll
@@ -39,8 +48,8 @@ export function PollMessageController(app: HonoApp): void {
 			const messageRequestService = ctx.get('messageRequestService');
 			const contentType = ctx.req.header('content-type');
 			const validatedData = contentType?.includes('multipart/form-data')
-				? ((await parseMultipartMessageData(ctx, user, channelId, MessageRequestSchema)) as MessageRequest)
-				: await (async () => {
+				? ((await parseMultipartMessageData(ctx, user, channelId, PollMessageRequestSchema)) as PollMessageRequest)
+				: await (async (): Promise<PollMessageRequest> => {
 						let data: unknown;
 						try {
 							const raw = await ctx.req.text();
@@ -48,11 +57,11 @@ export function PollMessageController(app: HonoApp): void {
 						} catch {
 							throw InputValidationError.fromCode('message_data', ValidationErrorCodes.INVALID_MESSAGE_DATA);
 						}
-						const validationResult = MessageRequestSchema.safeParse(normalizeMessageRequestPayload(data));
+						const validationResult = PollMessageRequestSchema.safeParse(normalizeMessageRequestPayload(data));
 						if (!validationResult.success) {
 							throw InputValidationError.fromCode('message_data', ValidationErrorCodes.INVALID_MESSAGE_DATA);
 						}
-						return validationResult.data as MessageRequest;
+						return validationResult.data as PollMessageRequest;
 					})();
 
 			const response = (await messageRequestService.sendMessage({
@@ -60,7 +69,7 @@ export function PollMessageController(app: HonoApp): void {
 				channelId,
 				data: validatedData,
 				requestCache,
-			})) as MessageResponse;
+			})) as PollAwareMessageResponse;
 
 			await pollMessagePersistence.persistCreatedMessagePoll({
 				channelId,
