@@ -49,3 +49,25 @@ export const PollRequest = z.object({
 });
 
 export type PollRequest = z.infer<typeof PollRequest>;
+
+export const PollVoteRequest = z.object({
+	answer_ids: z
+		.array(Int32Type)
+		.min(1)
+		.max(POLL_MAX_ANSWERS)
+		.refine((ids) => new Set(ids).size === ids.length, {message: 'Poll answer IDs must be unique'})
+		.describe('Selected answer IDs in preference order for ranked polls'),
+});
+
+export type PollVoteRequest = z.infer<typeof PollVoteRequest>;
+
+export const PollCustomAnswerRequest = z
+	.object({
+		text: createStringType(0, POLL_ANSWER_MAX_LENGTH).default('').describe('Text for the custom poll answer'),
+		attachment_id: Int32Type.nullish().describe('Optional client-side attachment identifier for the custom answer image'),
+	})
+	.refine((answer) => answer.text.trim().length > 0 || answer.attachment_id != null, {
+		message: 'A custom poll answer must contain text or an image attachment',
+	});
+
+export type PollCustomAnswerRequest = z.infer<typeof PollCustomAnswerRequest>;
