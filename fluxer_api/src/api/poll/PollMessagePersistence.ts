@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type {MessageResponse} from '@fluxer/schema/src/domains/message/MessageResponseSchemas';
+import type {PollRequest} from '@fluxer/schema/src/domains/message/PollSchemas';
 import type {ChannelID, UserID} from '../BrandedTypes';
 import {createMessageID} from '../BrandedTypes';
 import type {MessageRequest} from '../channel/MessageTypes';
 import {PollRepository} from './PollRepository';
+
+type PollMessageRequest = MessageRequest & {poll?: PollRequest | null};
 
 /**
  * Persists the poll sidecar after the normal message has been created.
@@ -19,7 +22,7 @@ export class PollMessagePersistence {
 	async persistCreatedMessagePoll(params: {
 		channelId: ChannelID;
 		creatorId: UserID;
-		request: MessageRequest;
+		request: PollMessageRequest;
 		response: MessageResponse;
 	}): Promise<void> {
 		const poll = params.request.poll;
