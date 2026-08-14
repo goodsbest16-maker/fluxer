@@ -26,6 +26,7 @@ import {OAuth2Controller} from '../oauth/OAuth2Controller';
 import {OpenAPIController} from '../openapi/OpenAPIController';
 import {registerPackControllers} from '../pack/controllers/index';
 import {PollController} from '../poll/PollController';
+import {PollMessageController} from '../poll/PollMessageController';
 import {PremiumController} from '../premium/PremiumController';
 import {ReadStateController} from '../read_state/ReadStateController';
 import {ReportController} from '../report/ReportController';
@@ -46,6 +47,7 @@ export function registerControllers(routes: HonoApp, config: APIConfig): void {
 	GeolocationController(routes);
 	registerAdminControllers(routes);
 	AuthController(routes);
+	PollMessageController(routes);
 	ChannelController(routes);
 	PollController(routes);
 	ConnectionController(routes);
