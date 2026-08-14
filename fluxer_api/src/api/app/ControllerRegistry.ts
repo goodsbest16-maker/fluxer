@@ -25,6 +25,7 @@ import {OAuth2ApplicationsController} from '../oauth/OAuth2ApplicationsControlle
 import {OAuth2Controller} from '../oauth/OAuth2Controller';
 import {OpenAPIController} from '../openapi/OpenAPIController';
 import {registerPackControllers} from '../pack/controllers/index';
+import {PollController} from '../poll/PollController';
 import {PremiumController} from '../premium/PremiumController';
 import {ReadStateController} from '../read_state/ReadStateController';
 import {ReportController} from '../report/ReportController';
@@ -46,6 +47,7 @@ export function registerControllers(routes: HonoApp, config: APIConfig): void {
 	registerAdminControllers(routes);
 	AuthController(routes);
 	ChannelController(routes);
+	PollController(routes);
 	ConnectionController(routes);
 	BlueskyOAuthController(routes);
 	InstanceController(routes);
